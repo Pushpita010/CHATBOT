@@ -2,6 +2,4 @@ Flask
 PyPDF2
 python-docx
 openpyxl
-Werkzeug
-openai
 requests

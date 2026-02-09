@@ -1,7 +1,6 @@
 
 from flask import Flask, render_template, request, jsonify
-import os
-from werkzeug.utils import secure_filename
+from io import BytesIO
 from document_parser import extract_text_from_file
 from llm_interface import get_llm_response
 
@@ -10,9 +9,6 @@ doc_store = {}
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # Replace with a secure key in production
-UPLOAD_FOLDER = 'uploads'
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 
 # Endpoint to handle chat queries
@@ -31,16 +27,17 @@ def chat():
 
     # Call LLM interface to get response
     try:
-        response = get_llm_response(user_message, doc_text, model, chat_history)
+        response = get_llm_response(
+            user_message, doc_text, model, chat_history)
     except Exception as e:
         response = f'Error generating response: {str(e)}'
 
     return jsonify({'response': response})
 
+
 @app.route('/')
 def index():
     return render_template('index.html')
-
 
 
 # Endpoint to handle file upload and model selection
@@ -52,13 +49,11 @@ def upload():
     if file.filename == '':
         return jsonify({'error': 'No selected file'}), 400
     model = request.form.get('model', 'llama')
-    filename = secure_filename(file.filename)
-    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-    file.save(filepath)
 
-    # Extract text from the uploaded file
+    # Process file in memory without saving to disk
     try:
-        doc_text = extract_text_from_file(filepath)
+        file_data = BytesIO(file.read())
+        doc_text = extract_text_from_file(file_data, file.filename)
     except Exception as e:
         return jsonify({'error': f'Failed to extract text: {str(e)}'}), 500
 
@@ -67,6 +62,7 @@ def upload():
     doc_store[session_id] = {'doc_text': doc_text, 'model': model}
 
     return jsonify({'message': 'File processed successfully.', 'session_id': session_id})
+
 
 if __name__ == '__main__':
     app.run(debug=True)
