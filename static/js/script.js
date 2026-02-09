@@ -61,6 +61,9 @@ document.addEventListener("DOMContentLoaded", function () {
     loading.style.display = "block";
     userInput.value = "";
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 330000); // 5.5 minutes
+
     fetch("/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -69,9 +72,11 @@ document.addEventListener("DOMContentLoaded", function () {
         session_id: sessionId,
         chat_history: chatHistory,
       }),
+      signal: controller.signal,
     })
       .then((res) => res.json())
       .then((data) => {
+        clearTimeout(timeoutId);
         loading.style.display = "none";
         if (data.response) {
           appendMessage("bot", data.response);
@@ -80,9 +85,14 @@ document.addEventListener("DOMContentLoaded", function () {
           errorMessage.textContent = data.error;
         }
       })
-      .catch(() => {
+      .catch((err) => {
+        clearTimeout(timeoutId);
         loading.style.display = "none";
-        errorMessage.textContent = "Error getting response.";
+        if (err.name === "AbortError") {
+          errorMessage.textContent = "Request timed out. Check if Ollama is running and try again.";
+        } else {
+          errorMessage.textContent = "Error getting response.";
+        }
       });
   });
 

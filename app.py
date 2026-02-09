@@ -30,7 +30,7 @@ def chat():
         response = get_llm_response(
             user_message, doc_text, model, chat_history)
     except Exception as e:
-        response = f'Error generating response: {str(e)}'
+        response = f'Error: {str(e)}'
 
     return jsonify({'response': response})
 

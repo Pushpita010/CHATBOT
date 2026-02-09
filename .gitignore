@@ -1,5 +1,4 @@
 # Byte-compiled / optimized / DLL files
-__pycache__/
 *.py[cod]
 *$py.class
 
@@ -65,8 +64,7 @@ pip-delete-this-directory.txt
 instance/
 .webassets-cache
 
-# Uploads and temp files
-uploads/
+# Uploads and temp files (no longer used - files processed in memory)
 *.tmp
 *.log
 *.pyc
