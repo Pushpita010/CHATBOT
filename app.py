@@ -1,9 +1,12 @@
 
-from flask import Flask, render_template, request, jsonify, session
+from flask import Flask, render_template, request, jsonify
 import os
 from werkzeug.utils import secure_filename
 from document_parser import extract_text_from_file
 from llm_interface import get_llm_response
+
+import uuid
+doc_store = {}
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # Replace with a secure key in production
@@ -11,22 +14,24 @@ UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+
 # Endpoint to handle chat queries
 @app.route('/chat', methods=['POST'])
 def chat():
     data = request.get_json()
     user_message = data.get('message', '')
-    # Retrieve document text and model from session
-    doc_text = session.get('doc_text')
-    model = session.get('model', 'llama')
-    if not doc_text:
+    session_id = data.get('session_id')
+    chat_history = data.get('chat_history', None)
+    if not session_id or session_id not in doc_store:
         return jsonify({'response': 'No document uploaded yet.'}), 400
+    doc_text = doc_store[session_id]['doc_text']
+    model = doc_store[session_id]['model']
     if not user_message:
         return jsonify({'response': 'No question provided.'}), 400
 
     # Call LLM interface to get response
     try:
-        response = get_llm_response(user_message, doc_text, model)
+        response = get_llm_response(user_message, doc_text, model, chat_history)
     except Exception as e:
         response = f'Error generating response: {str(e)}'
 
@@ -35,6 +40,7 @@ def chat():
 @app.route('/')
 def index():
     return render_template('index.html')
+
 
 
 # Endpoint to handle file upload and model selection
@@ -56,12 +62,11 @@ def upload():
     except Exception as e:
         return jsonify({'error': f'Failed to extract text: {str(e)}'}), 500
 
-    # Store document text and model in session
-    session['doc_text'] = doc_text
-    session['model'] = model
+    # Store document text and model in a server-side store with a session id
+    session_id = str(uuid.uuid4())
+    doc_store[session_id] = {'doc_text': doc_text, 'model': model}
 
-    # Optionally, generate a session id (here, just use Flask session)
-    return jsonify({'message': 'File processed successfully.', 'session_id': session.sid if hasattr(session, 'sid') else None})
+    return jsonify({'message': 'File processed successfully.', 'session_id': session_id})
 
 if __name__ == '__main__':
     app.run(debug=True)

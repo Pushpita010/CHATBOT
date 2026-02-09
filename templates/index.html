@@ -9,13 +9,14 @@
     <div class="container">
         <h1>Document Chatbot</h1>
         <form id="upload-form" enctype="multipart/form-data">
-            <input type="file" id="file-input" name="file" accept=".pdf,.doc,.docx,.xls,.xlsx" required>
+            <input type="file" id="file-input" name="file" accept=".pdf,.docx,.xlsx" required>
             <select id="model-select" name="model">
                 <option value="llama">Llama</option>
                 <option value="gemma">Gemma</option>
             </select>
             <button type="submit">Upload & Process</button>
         </form>
+        <div id="error-message" class="error-message"></div>
         <div id="chat-container">
             <div id="chat-history"></div>
             <form id="chat-form">
@@ -23,6 +24,7 @@
                 <button type="submit">Send</button>
             </form>
         </div>
+        <div id="loading" class="loading" style="display:none;">Loading...</div>
     </div>
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
