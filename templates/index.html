@@ -3,28 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <title>Document Chatbot</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <div class="container">
-        <h1>Document Chatbot</h1>
-        <form id="upload-form" enctype="multipart/form-data">
-            <input type="file" id="file-input" name="file" accept=".pdf,.docx,.xlsx" required>
-            <select id="model-select" name="model">
-                <option value="llama">Llama</option>
-                <option value="gemma">Gemma</option>
-            </select>
-            <button type="submit">Upload & Process</button>
-        </form>
-        <div id="error-message" class="error-message"></div>
-        <div id="chat-container">
-            <div id="chat-history"></div>
-            <form id="chat-form">
-                <input type="text" id="user-input" placeholder="Ask a question..." autocomplete="off" required>
-                <button type="submit">Send</button>
+    <div class="main-wrapper">
+        <header>
+            <h1>Document Chatbot</h1>
+            <p class="subtitle">Upload a document and ask questions. Powered by Llama/Gemma via Ollama.</p>
+        </header>
+        <section class="upload-section">
+            <form id="upload-form" enctype="multipart/form-data">
+                <label for="file-input" class="file-label">Choose File</label>
+                <input type="file" id="file-input" name="file" accept=".pdf,.docx,.xlsx" required>
+                <label for="model-select" class="model-label">Model</label>
+                <select id="model-select" name="model">
+                    <option value="llama2">Llama 2</option>
+                    <option value="gemma">Gemma</option>
+                </select>
+                <button type="submit" class="upload-btn">Upload & Process</button>
             </form>
-        </div>
-        <div id="loading" class="loading" style="display:none;">Loading...</div>
+            <div id="error-message" class="error-message"></div>
+        </section>
+        <section class="chat-section">
+            <div id="chat-container">
+                <div id="chat-history"></div>
+                <form id="chat-form">
+                    <input type="text" id="user-input" placeholder="Ask a question..." autocomplete="off" required>
+                    <button type="submit" class="send-btn">Send</button>
+                </form>
+            </div>
+            <div id="loading" class="loading" style="display:none;">Loading...</div>
+        </section>
     </div>
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
