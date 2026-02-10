@@ -276,6 +276,7 @@ input[type="file"]:focus {
   flex-direction: column;
   gap: 12px;
   padding-right: 6px;
+  padding-bottom: 6px;
 }
 
 .message {

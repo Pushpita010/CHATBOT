@@ -3,3 +3,7 @@ PyPDF2
 python-docx
 openpyxl
 requests
+llama-index-core
+llama-index-embeddings-huggingface
+sentence-transformers
+numpy<2.0
