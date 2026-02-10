@@ -7,3 +7,4 @@ llama-index-core
 llama-index-embeddings-huggingface
 sentence-transformers
 numpy<2.0
+google.genai
