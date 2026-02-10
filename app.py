@@ -6,6 +6,7 @@ Simplified, robust implementation without heavy dependencies
 from flask import Flask, render_template, request, jsonify
 from io import BytesIO
 import uuid
+import os
 
 from document_parser import extract_text_from_file
 from document_retriever import DocumentRetriever
