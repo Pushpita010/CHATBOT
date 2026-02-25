@@ -12,7 +12,7 @@ from typing import Tuple
 import google.genai as genai
 
 
-def _try_ollama(prompt: str, model: str, timeout: int = 10) -> Tuple[bool, str]:
+def _try_ollama(prompt: str, model: str, timeout: int = 50) -> Tuple[bool, str]:
     """
     Try to get response from local Ollama instance with explicit timing.
 
