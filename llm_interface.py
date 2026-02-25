@@ -1,6 +1,7 @@
 """
 LLM Interface - Connect to local Ollama instance with Gemini API fallback
 Falls back to Gemini API if Ollama takes more than 10 seconds
+Gemini API has a 15-second timeout
 Uses google-genai SDK for cleaner Gemini integration
 """
 
@@ -66,13 +67,14 @@ def _try_ollama(prompt: str, model: str, timeout: int = 10) -> Tuple[bool, str]:
         return False, str(e)
 
 
-def _try_gemini(prompt: str) -> Tuple[bool, str]:
+def _try_gemini(prompt: str, timeout: int = 60) -> Tuple[bool, str]:
     """
     Fallback to Google Gemini API using google-genai SDK.
     Dynamically finds and uses available models.
 
     Args:
         prompt: Full prompt to send
+        timeout: Timeout in seconds (default: 15)
 
     Returns:
         Tuple of (success: bool, response: str)
@@ -88,7 +90,7 @@ def _try_gemini(prompt: str) -> Tuple[bool, str]:
     except Exception as e:
         return False, f"Failed to create Gemini client: {str(e)}"
 
-    print(f"[LLM] Switching to Gemini API (fallback)...")
+    print(f"[LLM] Switching to Gemini API (fallback, timeout: {timeout}s)...")
 
     # Try to get list of available models
     models_to_try = []
@@ -131,11 +133,19 @@ def _try_gemini(prompt: str) -> Tuple[bool, str]:
         ]
 
     # Try each model
+    gemini_start = time.time()
     for model_name, client in models_to_try:
         try:
+            # Check if we've exceeded total timeout
+            elapsed = time.time() - gemini_start
+            if elapsed >= timeout:
+                print(
+                    f"[LLM] ✗ Gemini timeout ({elapsed:.1f}s >= {timeout}s timeout)")
+                return False, "gemini_timeout"
+
             print(f"[LLM] Trying {model_name}...")
 
-            # Generate response using the client
+            # Generate response using the client with timeout
             response = client.models.generate_content(
                 model=model_name,
                 contents=prompt
@@ -145,8 +155,9 @@ def _try_gemini(prompt: str) -> Tuple[bool, str]:
             if response and hasattr(response, 'text') and response.text:
                 result = response.text.strip()
                 if result:
+                    elapsed = time.time() - gemini_start
                     print(
-                        f"[LLM] ✓ Gemini ({model_name}) responded ({len(result)} chars)"
+                        f"[LLM] ✓ Gemini ({model_name}) responded in {elapsed:.1f}s ({len(result)} chars)"
                     )
                     return True, result
             else:
